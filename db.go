@@ -47,10 +47,9 @@ func SetupDB(dir string) {
 		if err != nil {
 			panic(err)
 		}
-	} else {
-		idFile, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, os.ModePerm)
-		if err != nil {
-			panic(err)
-		}
+	}
+	idFile, err = os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, os.ModePerm)
+	if err != nil {
+		panic(err)
 	}
 }

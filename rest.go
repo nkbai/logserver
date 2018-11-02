@@ -17,12 +17,12 @@ import (
 func Start(port int) {
 	api := rest.NewApi()
 
-	api.Use(rest.DefaultProdStack...)
+	api.Use(rest.DefaultCommonStack...)
 
 	router, err := rest.MakeRouter(
 		//peer 提交Partner的BalanceProof,更新Partner的余额
 		rest.Get("/logsrv/1/assignid", AssignID),
-		rest.Put("/logsrv/1/log/:address/:id", Log),
+		rest.Post("/logsrv/1/log/:address/:id", Log),
 	)
 	if err != nil {
 		log.Fatalf("maker router :%s", err)
@@ -43,6 +43,7 @@ var cache = ccache.New(ccache.Configure().MaxSize(50).ItemsToPrune(5).OnDelete(f
 func Log(w rest.ResponseWriter, r *rest.Request) {
 	address := r.PathParam("address")
 	id := r.PathParam("id")
+	log.Printf("address=%s,id=%s\n", address, id)
 	msg, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		rest.Error(w, "body err", http.StatusConflict)

@@ -46,6 +46,7 @@ func StartMain() {
 func mainCtx(ctx *cli.Context) error {
 	fmt.Printf("Welcom to logserver,version %s\n", ctx.App.Version)
 	logdir = ctx.String("logdir")
+	SetupDB(logdir)
 	Start(ctx.Int("port"))
 	return nil
 }
