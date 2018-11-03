@@ -7,13 +7,17 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"sync"
 )
 
 var id = 0
 var idFileName = "id.dat"
 var idFile *os.File
+var lock sync.Mutex
 
 func NextID() int {
+	lock.Lock()
+	defer lock.Unlock()
 	id++
 	_, err := idFile.Seek(0, io.SeekStart)
 	if err != nil {
@@ -23,10 +27,10 @@ func NextID() int {
 	if err != nil {
 		log.Printf("write err %s", err)
 	}
-	err = idFile.Sync()
-	if err != nil {
-		log.Printf("sync err %s", err)
-	}
+	//err = idFile.Sync()
+	//if err != nil {
+	//	log.Printf("sync err %s", err)
+	//}
 	return id
 }
 
