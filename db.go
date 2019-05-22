@@ -56,4 +56,5 @@ func SetupDB(dir string) {
 	if err != nil {
 		panic(err)
 	}
+	NextID()
 }
