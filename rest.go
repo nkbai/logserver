@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"time"
 
@@ -23,6 +25,7 @@ func Start(port int) {
 		//peer 提交Partner的BalanceProof,更新Partner的余额
 		rest.Get("/logsrv/1/assignid", AssignID),
 		rest.Post("/logsrv/1/log/:address/:id", Log),
+		rest.Post("/logsrv/1/upload",upload),
 	)
 	if err != nil {
 		log.Fatalf("maker router :%s", err)
@@ -35,7 +38,25 @@ func Start(port int) {
 func AssignID(w rest.ResponseWriter, r *rest.Request) {
 	w.WriteJson(NextID())
 }
-
+func upload(w rest.ResponseWriter, r *rest.Request) {
+	r.ParseMultipartForm(32 << 20)
+	file, handler, err := r.FormFile("uploadfile")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer file.Close()
+	//做一下简单的编码替换
+	handler.Filename=path.Base(handler.Filename)
+	f, err := os.OpenFile(path.Join(logdir,"upload", handler.Filename), os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer f.Close()
+	io.Copy(f, file)
+	fmt.Fprintln(w.(http.ResponseWriter), "upload ok!")
+}
 var cache = ccache.New(ccache.Configure().MaxSize(50).ItemsToPrune(5).OnDelete(func(item *ccache.Item) {
 	item.Value().(*os.File).Close()
 }))
