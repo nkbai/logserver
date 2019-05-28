@@ -1,6 +1,7 @@
 package main
 
 import (
+	"compress/gzip"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -46,7 +47,13 @@ func upload(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 	defer file.Close()
-	//做一下简单的编码替换
+	//解压缩
+	zr, err := gzip.NewReader(file)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer zr.Close()
 	handler.Filename=path.Base(handler.Filename)
 	f, err := os.OpenFile(path.Join(logdir,"upload", handler.Filename), os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
@@ -54,7 +61,7 @@ func upload(w rest.ResponseWriter, r *rest.Request) {
 		return
 	}
 	defer f.Close()
-	io.Copy(f, file)
+	io.Copy(f, zr)
 	fmt.Fprintln(w.(http.ResponseWriter), "upload ok!")
 }
 var cache = ccache.New(ccache.Configure().MaxSize(50).ItemsToPrune(5).OnDelete(func(item *ccache.Item) {
